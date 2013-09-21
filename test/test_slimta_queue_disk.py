@@ -36,10 +36,18 @@ class TestRedisStorage(MoxTestBase):
         pipe = self.mox.CreateMockAnything()
         self.storage.redis.pipeline().AndReturn(pipe)
         pipe.delete(Func(_is_prefixed_id))
-        pipe.hmset(Func(_is_prefixed_id),
-                   'timestamp', 1234567890,
-                   'attempts', 0,
-                   'envelope', IsA(str))
+        def _verify_hmset(val):
+            self.assertEqual(1234567890, val['timestamp'])
+            self.assertEqual(0, val['attempts'])
+            self.assertIsInstance(val['envelope'], basestring)
+            return True
+        pipe.hmset(Func(_is_prefixed_id), Func(_verify_hmset))
+        def _verify_rpush(val):
+            timestamp, id = cPickle.loads(val)
+            self.assertEqual(1234567890, timestamp)
+            self.assertTrue(_is_id(id))
+            return True
+        pipe.rpush('test:queue', Func(_verify_rpush))
         pipe.execute()
         self.mox.ReplayAll()
         env = Envelope('sender@example.com', ['rcpt@example.com'])
@@ -80,6 +88,21 @@ class TestRedisStorage(MoxTestBase):
         self.storage.redis.delete('test:asdf')
         self.mox.ReplayAll()
         self.storage.remove('asdf')
+
+    def test_notify(self):
+        self.mox.ReplayAll()
+        self.storage.notify('asdf', 0.0)
+
+    def test_wait(self):
+        ret = cPickle.dumps((1234567890, 'asdf'))
+        self.storage.redis.blpop(['test:queue'], 0).AndReturn(('test:queue', ret))
+        self.mox.ReplayAll()
+        self.assertEqual((1234567890, 'asdf'), self.storage.wait())
+
+    def test_wait_none(self):
+        self.storage.redis.blpop(['test:queue'], 0).AndReturn(None)
+        self.mox.ReplayAll()
+        self.assertIsNone(self.storage.wait())
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4

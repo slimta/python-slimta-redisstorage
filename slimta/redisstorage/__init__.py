@@ -79,6 +79,7 @@ class RedisStorage(QueueStorage):
                                     socket_timeout=socket_timeout)
         self.redis = redis.StrictRedis(connection_pool=pool)
         self.prefix = prefix
+        self.queue_key = '{0}queue'.format(prefix)
 
     def write(self, envelope, timestamp):
         envelope_raw = cPickle.dumps(envelope, cPickle.HIGHEST_PROTOCOL)
@@ -86,12 +87,14 @@ class RedisStorage(QueueStorage):
             id = uuid.uuid4().hex
             key = self.prefix + id
             if self.redis.setnx(key, self.HOLD_STRING):
+                queue_raw = cPickle.dumps((timestamp, id),
+                                          cPickle.HIGHEST_PROTOCOL)
                 pipe = self.redis.pipeline()
                 pipe.delete(key)
-                pipe.hmset(key,
-                           'timestamp', timestamp,
-                           'attempts', 0,
-                           'envelope', envelope_raw)
+                pipe.hmset(key, {'timestamp': timestamp,
+                                 'attempts': 0,
+                                 'envelope': envelope_raw})
+                pipe.rpush(self.queue_key, queue_raw)
                 pipe.execute()
                 log.write(id, envelope)
                 return id
@@ -107,18 +110,27 @@ class RedisStorage(QueueStorage):
 
     def load(self):
         for key in self.redis.keys(self.prefix+'*'):
-            id = key[len(self.prefix):]
-            timestamp = self.redis.hget(key, 'timestamp')
-            yield timestamp, id
+            if key != self.queue_key:
+                id = key[len(self.prefix):]
+                timestamp = float(self.redis.hget(key, 'timestamp'))
+                yield timestamp, id
 
     def get(self, id):
         envelope_raw, attempts = self.redis.hmget(self.prefix+id,
                                                   'envelope', 'attempts')
-        return cPickle.loads(envelope_raw), attempts
+        return cPickle.loads(envelope_raw), int(attempts)
 
     def remove(self, id):
         self.redis.delete(self.prefix+id)
         log.remove(id)
+
+    def notify(self, id, timestamp):
+        pass
+
+    def wait(self):
+        ret = self.redis.blpop([self.queue_key], 0)
+        if ret:
+            return cPickle.loads(ret[1])
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4
