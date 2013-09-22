@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='python-slimta-redisstorage',
-      version='0.1.1',
+      version='0.1.2',
       author='Ian Good',
       author_email='icgood@gmail.com',
       description='Adds a redis-based queue extension to python-slimta.',
