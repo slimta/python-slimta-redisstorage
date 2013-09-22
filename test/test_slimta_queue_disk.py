@@ -31,15 +31,15 @@ class TestRedisStorage(MoxTestBase):
         return id, env
 
     def test_write(self):
-        self.storage.redis.setnx(Func(_is_prefixed_id), IsA(str)).AndReturn(0)
-        self.storage.redis.setnx(Func(_is_prefixed_id), IsA(str)).AndReturn(1)
+        self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(str)).AndReturn(0)
+        self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(str)).AndReturn(1)
         pipe = self.mox.CreateMockAnything()
         self.storage.redis.pipeline().AndReturn(pipe)
         pipe.delete(Func(_is_prefixed_id))
         def _verify_hmset(val):
             self.assertEqual(1234567890, val['timestamp'])
             self.assertEqual(0, val['attempts'])
-            self.assertIsInstance(val['envelope'], basestring)
+            self.assertNotIn('envelope', val)
             return True
         pipe.hmset(Func(_is_prefixed_id), Func(_verify_hmset))
         def _verify_rpush(val):

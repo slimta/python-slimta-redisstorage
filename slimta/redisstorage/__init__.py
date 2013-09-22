@@ -29,6 +29,7 @@ from __future__ import absolute_import
 
 import os
 import uuid
+import time
 import cPickle
 
 import redis
@@ -86,14 +87,13 @@ class RedisStorage(QueueStorage):
         while True:
             id = uuid.uuid4().hex
             key = self.prefix + id
-            if self.redis.setnx(key, self.HOLD_STRING):
+            if self.redis.hsetnx(key, 'envelope', envelope_raw):
                 queue_raw = cPickle.dumps((timestamp, id),
                                           cPickle.HIGHEST_PROTOCOL)
                 pipe = self.redis.pipeline()
                 pipe.delete(key)
                 pipe.hmset(key, {'timestamp': timestamp,
-                                 'attempts': 0,
-                                 'envelope': envelope_raw})
+                                 'attempts': 0})
                 pipe.rpush(self.queue_key, queue_raw)
                 pipe.execute()
                 log.write(id, envelope)
@@ -112,13 +112,13 @@ class RedisStorage(QueueStorage):
         for key in self.redis.keys(self.prefix+'*'):
             if key != self.queue_key:
                 id = key[len(self.prefix):]
-                timestamp = float(self.redis.hget(key, 'timestamp'))
-                yield timestamp, id
+                timestamp = self.redis.hget(key, 'timestamp') or time.time()
+                yield float(timestamp), id
 
     def get(self, id):
         envelope_raw, attempts = self.redis.hmget(self.prefix+id,
                                                   'envelope', 'attempts')
-        return cPickle.loads(envelope_raw), int(attempts)
+        return cPickle.loads(envelope_raw), int(attempts or 0)
 
     def remove(self, id):
         self.redis.delete(self.prefix+id)
