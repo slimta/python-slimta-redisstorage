@@ -69,8 +69,6 @@ class RedisStorage(QueueStorage):
 
     """
 
-    HOLD_STRING = 'held'
-
     def __init__(self, host='localhost', port=6379, db=0, password=None,
                  socket_timeout=None, prefix='slimta:'):
         super(RedisStorage, self).__init__()
