@@ -35,7 +35,6 @@ class TestRedisStorage(MoxTestBase):
         self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(str)).AndReturn(1)
         pipe = self.mox.CreateMockAnything()
         self.storage.redis.pipeline().AndReturn(pipe)
-        pipe.delete(Func(_is_prefixed_id))
         def _verify_hmset(val):
             self.assertEqual(1234567890, val['timestamp'])
             self.assertEqual(0, val['attempts'])

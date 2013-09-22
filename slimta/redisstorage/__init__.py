@@ -91,7 +91,6 @@ class RedisStorage(QueueStorage):
                 queue_raw = cPickle.dumps((timestamp, id),
                                           cPickle.HIGHEST_PROTOCOL)
                 pipe = self.redis.pipeline()
-                pipe.delete(key)
                 pipe.hmset(key, {'timestamp': timestamp,
                                  'attempts': 0})
                 pipe.rpush(self.queue_key, queue_raw)
