@@ -124,9 +124,6 @@ class RedisStorage(QueueStorage):
         self.redis.delete(self.prefix+id)
         log.remove(id)
 
-    def notify(self, id, timestamp):
-        pass
-
     def wait(self):
         ret = self.redis.blpop([self.queue_key], 0)
         if ret:

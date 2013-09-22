@@ -89,10 +89,6 @@ class TestRedisStorage(MoxTestBase):
         self.mox.ReplayAll()
         self.storage.remove('asdf')
 
-    def test_notify(self):
-        self.mox.ReplayAll()
-        self.storage.notify('asdf', 0.0)
-
     def test_wait(self):
         ret = cPickle.dumps((1234567890, 'asdf'))
         self.storage.redis.blpop(['test:queue'], 0).AndReturn(('test:queue', ret))
