@@ -126,7 +126,8 @@ class RedisStorage(QueueStorage):
     def wait(self):
         ret = self.redis.blpop([self.queue_key], 0)
         if ret:
-            return cPickle.loads(ret[1])
+            return [cPickle.loads(ret[1])]
+        return []
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4

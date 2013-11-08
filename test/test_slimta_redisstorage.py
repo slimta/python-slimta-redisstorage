@@ -92,12 +92,12 @@ class TestRedisStorage(MoxTestBase):
         ret = cPickle.dumps((1234567890, 'asdf'))
         self.storage.redis.blpop(['test:queue'], 0).AndReturn(('test:queue', ret))
         self.mox.ReplayAll()
-        self.assertEqual((1234567890, 'asdf'), self.storage.wait())
+        self.assertEqual([(1234567890, 'asdf')], self.storage.wait())
 
     def test_wait_none(self):
         self.storage.redis.blpop(['test:queue'], 0).AndReturn(None)
         self.mox.ReplayAll()
-        self.assertIsNone(self.storage.wait())
+        self.assertFalse(self.storage.wait())
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4
