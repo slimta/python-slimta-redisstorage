@@ -115,6 +115,8 @@ class RedisStorage(QueueStorage):
     def get(self, id):
         envelope_raw, attempts = self.redis.hmget(self.prefix+id,
                                                   'envelope', 'attempts')
+        if not envelope_raw:
+            raise KeyError(id)
         return cPickle.loads(envelope_raw), int(attempts or 0)
 
     def remove(self, id):
