@@ -74,6 +74,12 @@ class TestRedisStorage(MoxTestBase):
         self.assertEqual(vars(env), vars(get_env))
         self.assertEqual(13, attempts)
 
+    def test_get_missing(self):
+        self.storage.redis.hmget('test:asdf', 'envelope', 'attempts').AndReturn((None, None))
+        self.mox.ReplayAll()
+        with self.assertRaises(KeyError):
+            self.storage.get('asdf')
+
     def test_load(self):
         self.storage.redis.keys('test:*').AndReturn(['test:one', 'test:two', 'test:three'])
         self.storage.redis.hget('test:one', 'timestamp').AndReturn(123)
