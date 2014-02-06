@@ -38,7 +38,7 @@ class TestRedisStorage(MoxTestBase):
         def _verify_hmset(val):
             self.assertEqual(1234567890, val['timestamp'])
             self.assertEqual(0, val['attempts'])
-            self.assertNotIn('envelope', val)
+            self.assertFalse('envelope' in val)
             return True
         pipe.hmset(Func(_is_prefixed_id), Func(_verify_hmset))
         def _verify_rpush(val):
@@ -77,8 +77,7 @@ class TestRedisStorage(MoxTestBase):
     def test_get_missing(self):
         self.storage.redis.hmget('test:asdf', 'envelope', 'attempts').AndReturn((None, None))
         self.mox.ReplayAll()
-        with self.assertRaises(KeyError):
-            self.storage.get('asdf')
+        self.assertRaises(KeyError, self.storage.get, 'asdf')
 
     def test_load(self):
         self.storage.redis.keys('test:*').AndReturn(['test:one', 'test:two', 'test:three'])
