@@ -36,7 +36,7 @@ import redis
 import gevent
 from gevent import socket
 
-from slimta.queue import QueueStorage 
+from slimta.queue import QueueStorage
 from slimta import logging
 
 __all__ = ['RedisStorage']
