@@ -105,6 +105,13 @@ class RedisStorage(QueueStorage):
         log.update_meta(id, attempts=new_attempts)
         return new_attempts
 
+    def set_recipients_delivered(self, id, rcpt_indexes):
+        current = self.redis.hget(self.prefix+id, 'delivered_indexes')
+        if current:
+            rcpt_indexes = cPickle.loads(current) + rcpt_indexes
+        new = cPickle.dumps(rcpt_indexes, cPickle.HIGHEST_PROTOCOL)
+        self.redis.hset(self.prefix+id, 'delivered_indexes', new)
+
     def load(self):
         for key in self.redis.keys(self.prefix+'*'):
             if key != self.queue_key:
