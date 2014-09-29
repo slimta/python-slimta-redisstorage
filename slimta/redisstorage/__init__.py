@@ -107,10 +107,12 @@ class RedisStorage(QueueStorage):
 
     def set_recipients_delivered(self, id, rcpt_indexes):
         current = self.redis.hget(self.prefix+id, 'delivered_indexes')
+        new_indexes = rcpt_indexes
         if current:
-            rcpt_indexes = cPickle.loads(current) + rcpt_indexes
-        new = cPickle.dumps(rcpt_indexes, cPickle.HIGHEST_PROTOCOL)
-        self.redis.hset(self.prefix+id, 'delivered_indexes', new)
+            new_indexes = cPickle.loads(current) + rcpt_indexes
+        self.redis.hset(self.prefix+id, 'delivered_indexes',
+                        cPickle.dumps(new_indexes, cPickle.HIGHEST_PROTOCOL))
+        log.update_meta(id, delivered_indexes=rcpt_indexes)
 
     def load(self):
         for key in self.redis.keys(self.prefix+'*'):
