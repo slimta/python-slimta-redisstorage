@@ -131,8 +131,7 @@ class RedisStorage(QueueStorage):
         del envelope_raw
         if delivered_indexes_raw:
             delivered_indexes = cPickle.loads(delivered_indexes_raw)
-            for i in sorted(delivered_indexes, reverse=True):
-                del envelope.recipients[i]
+            self._remove_delivered_rcpts(envelope, delivered_indexes)
         return envelope, int(attempts or 0)
 
     def remove(self, id):
