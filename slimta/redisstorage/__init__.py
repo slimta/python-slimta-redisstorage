@@ -120,11 +120,18 @@ class RedisStorage(QueueStorage):
                 yield float(timestamp), id
 
     def get(self, id):
-        envelope_raw, attempts = self.redis.hmget(self.prefix+id,
-                                                  'envelope', 'attempts')
+        envelope_raw, attempts, delivered_indexes_raw = \
+            self.redis.hmget(self.prefix+id, 'envelope', 'attempts', 
+                             'delivered_indexes')
         if not envelope_raw:
             raise KeyError(id)
-        return cPickle.loads(envelope_raw), int(attempts or 0)
+        envelope = cPickle.loads(envelope_raw)
+        del envelope_raw
+        if delivered_indexes_raw:
+            delivered_indexes = cPickle.loads(delivered_indexes_raw)
+            for i in sorted(delivered_indexes, reverse=True):
+                del envelope.recipients[i]
+        return envelope, int(attempts or 0)
 
     def remove(self, id):
         self.redis.delete(self.prefix+id)

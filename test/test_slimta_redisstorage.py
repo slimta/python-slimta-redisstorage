@@ -66,16 +66,18 @@ class TestRedisStorage(MoxTestBase):
         self.assertEqual(2, self.storage.increment_attempts('asdf'))
 
     def test_get(self):
-        env = Envelope('sender@example.com', ['rcpt@example.com'])
+        env = Envelope('sender@example.com', ['rcpt1@example.com', 'rcpt2@example.com'])
         envelope_raw = cPickle.dumps(env)
-        self.storage.redis.hmget('test:asdf', 'envelope', 'attempts').AndReturn((envelope_raw, 13))
+        delivered_indexes_raw = cPickle.dumps([0])
+        self.storage.redis.hmget('test:asdf', 'envelope', 'attempts', 'delivered_indexes').AndReturn((envelope_raw, 13, delivered_indexes_raw))
         self.mox.ReplayAll()
         get_env, attempts = self.storage.get('asdf')
-        self.assertEqual(vars(env), vars(get_env))
+        self.assertEqual('sender@example.com', get_env.sender)
+        self.assertEqual(['rcpt2@example.com'], get_env.recipients)
         self.assertEqual(13, attempts)
 
     def test_get_missing(self):
-        self.storage.redis.hmget('test:asdf', 'envelope', 'attempts').AndReturn((None, None))
+        self.storage.redis.hmget('test:asdf', 'envelope', 'attempts', 'delivered_indexes').AndReturn((None, None, None))
         self.mox.ReplayAll()
         self.assertRaises(KeyError, self.storage.get, 'asdf')
 
