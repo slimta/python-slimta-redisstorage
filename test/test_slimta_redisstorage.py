@@ -3,7 +3,7 @@ import re
 import cPickle
 
 from redis import StrictRedis
-from mox import MoxTestBase, IsA, Func
+from mox3.mox import MoxTestBase, IsA, Func
 
 from slimta.redisstorage import RedisStorage
 from slimta.envelope import Envelope
