@@ -123,7 +123,7 @@ class RedisStorage(QueueStorage):
 
     def get(self, id):
         envelope_raw, attempts, delivered_indexes_raw = \
-            self.redis.hmget(self.prefix+id, 'envelope', 'attempts', 
+            self.redis.hmget(self.prefix+id, 'envelope', 'attempts',
                              'delivered_indexes')
         if not envelope_raw:
             raise KeyError(id)
