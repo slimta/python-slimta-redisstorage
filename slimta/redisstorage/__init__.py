@@ -30,7 +30,8 @@ from __future__ import absolute_import
 import os
 import uuid
 import time
-import cPickle
+
+from six.moves import cPickle
 
 import redis
 import gevent

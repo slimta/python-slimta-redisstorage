@@ -1,9 +1,9 @@
 
 import re
-import cPickle
 
-from redis import StrictRedis
 from mox3.mox import MoxTestBase, IsA, Func
+from six.moves import cPickle
+from redis import StrictRedis
 
 from slimta.redisstorage import RedisStorage
 from slimta.envelope import Envelope
@@ -31,8 +31,8 @@ class TestRedisStorage(MoxTestBase):
         return id, env
 
     def test_write(self):
-        self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(str)).AndReturn(0)
-        self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(str)).AndReturn(1)
+        self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(bytes)).AndReturn(0)
+        self.storage.redis.hsetnx(Func(_is_prefixed_id), 'envelope', IsA(bytes)).AndReturn(1)
         pipe = self.mox.CreateMockAnything()
         self.storage.redis.pipeline().AndReturn(pipe)
         def _verify_hmset(val):
