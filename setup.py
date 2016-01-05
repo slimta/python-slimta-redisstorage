@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='python-slimta-redisstorage',
-      version='0.2.1',
+      version='0.3.0',
       author='Ian Good',
       author_email='icgood@gmail.com',
       description='Adds a redis-based queue extension to python-slimta.',
@@ -31,7 +31,7 @@ setup(name='python-slimta-redisstorage',
       url='http://slimta.org/',
       packages=find_packages(),
       namespace_packages=['slimta'],
-      install_requires=['python-slimta >= 1.1.0',
+      install_requires=['python-slimta >= 3.0',
                         'six >= 1',
                         'redis'],
       classifiers=['Development Status :: 3 - Alpha',
@@ -39,7 +39,11 @@ setup(name='python-slimta-redisstorage',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Information Technology',
                    'License :: OSI Approved :: MIT License',
-                   'Programming Language :: Python'])
+                   'Programming Language :: Python',
+                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.3',
+                   'Programming Language :: Python :: 3.4',
+                   'Programming Language :: Python :: 3.5'])
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4
