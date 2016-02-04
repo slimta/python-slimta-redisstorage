@@ -11,7 +11,8 @@ metadata to [redis][4] hash keys. This is a storage plugin for the standard
 queue engine that uses [redis-py][5] with gevent sockets to asynchronously
 communicate with the database.
 
-[![Build Status](http://ci.slimta.org/job/python-slimta-redisstorage/badge/icon)](http://ci.slimta.org/job/python-slimta-redisstorage/)
+[![Build Status](https://travis-ci.org/slimta/python-slimta-redisstorage.svg?branch=master)](https://travis-ci.org/slimta/python-slimta-redisstorage)
+[![Coverage Status](https://coveralls.io/repos/github/slimta/python-slimta-redisstorage/badge.svg?branch=master)](https://coveralls.io/github/slimta/python-slimta-redisstorage?branch=master)
 
 Getting Started
 ===============
@@ -23,7 +24,7 @@ Started" section. Once inside your virtualenv:
 
 To run the suite of included unit tests:
 
-    (.venv)$ nosetests
+    (.venv)$ py.test
 
 Refer to the [API Documentation][2] and [Manual][3] for more information on
 using this extension.
