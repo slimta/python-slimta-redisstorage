@@ -27,14 +27,12 @@
 
 from __future__ import absolute_import
 
-import os
 import uuid
 import time
 
 from six.moves import cPickle
 
 import redis
-import gevent
 from gevent import socket
 
 from slimta.queue import QueueStorage
