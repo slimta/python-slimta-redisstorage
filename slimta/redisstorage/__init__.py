@@ -79,11 +79,18 @@ class RedisStorage(QueueStorage):
         self.prefix = prefix
         self.queue_key = '{0}queue'.format(prefix)
 
+    def _get_key(self, id):
+        try:
+            id = id.decode('ascii')
+        except AttributeError:
+            pass
+        return self.prefix + id
+
     def write(self, envelope, timestamp):
         envelope_raw = cPickle.dumps(envelope, cPickle.HIGHEST_PROTOCOL)
         while True:
             id = uuid.uuid4().hex
-            key = self.prefix + id
+            key = self._get_key(id)
             if self.redis.hsetnx(key, 'envelope', envelope_raw):
                 queue_raw = cPickle.dumps((timestamp, id),
                                           cPickle.HIGHEST_PROTOCOL)
@@ -96,20 +103,20 @@ class RedisStorage(QueueStorage):
                 return id
 
     def set_timestamp(self, id, timestamp):
-        self.redis.hset(self.prefix+id, 'timestamp', timestamp)
+        self.redis.hset(self._get_key(id), 'timestamp', timestamp)
         log.update_meta(id, timestamp=timestamp)
 
     def increment_attempts(self, id):
-        new_attempts = self.redis.hincrby(self.prefix+id, 'attempts', 1)
+        new_attempts = self.redis.hincrby(self._get_key(id), 'attempts', 1)
         log.update_meta(id, attempts=new_attempts)
         return new_attempts
 
     def set_recipients_delivered(self, id, rcpt_indexes):
-        current = self.redis.hget(self.prefix+id, 'delivered_indexes')
+        current = self.redis.hget(self._get_key(id), 'delivered_indexes')
         new_indexes = rcpt_indexes
         if current:
             new_indexes = cPickle.loads(current) + rcpt_indexes
-        self.redis.hset(self.prefix+id, 'delivered_indexes',
+        self.redis.hset(self._get_key(id), 'delivered_indexes',
                         cPickle.dumps(new_indexes, cPickle.HIGHEST_PROTOCOL))
         log.update_meta(id, delivered_indexes=rcpt_indexes)
 
@@ -122,7 +129,7 @@ class RedisStorage(QueueStorage):
 
     def get(self, id):
         envelope_raw, attempts, delivered_indexes_raw = \
-            self.redis.hmget(self.prefix+id, 'envelope', 'attempts',
+            self.redis.hmget(self._get_key(id), 'envelope', 'attempts',
                              'delivered_indexes')
         if not envelope_raw:
             raise KeyError(id)
@@ -134,7 +141,7 @@ class RedisStorage(QueueStorage):
         return envelope, int(attempts or 0)
 
     def remove(self, id):
-        self.redis.delete(self.prefix+id)
+        self.redis.delete(self._get_key(id))
         log.remove(id)
 
     def wait(self):
